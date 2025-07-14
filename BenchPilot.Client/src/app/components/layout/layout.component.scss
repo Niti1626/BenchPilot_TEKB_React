@@ -1,0 +1,178 @@
+.layout-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.sidenav-container {
+  flex: 1;
+}
+
+.sidenav {
+  width: 256px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+
+  .sidenav-header {
+    padding: 20px 16px;
+    border-bottom: 1px solid #e5e7eb;
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0;
+    }
+  }
+
+  .nav-list {
+    padding-top: 8px;
+
+    a {
+      height: 48px;
+      color: #6b7280;
+      transition: all 0.2s ease;
+      margin: 0 8px;
+      border-radius: 8px;
+
+      &:hover {
+        background-color: #f3f4f6;
+        color: #374151;
+      }
+
+      &.active {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+
+        mat-icon {
+          color: #1d4ed8;
+        }
+      }
+
+      mat-icon {
+        color: inherit;
+        margin-right: 12px;
+      }
+    }
+  }
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-bottom: 1px solid #e5e7eb;
+  height: 64px;
+  padding: 0 16px;
+
+  .menu-button {
+    margin-right: 16px;
+  }
+
+  .desktop-logo {
+    font-size: 20px;
+    font-weight: 700;
+    margin-right: 32px;
+    display: none;
+
+    @media (min-width: 1024px) {
+      display: block;
+    }
+  }
+
+  .search-container {
+    flex: 1;
+    max-width: 400px;
+    margin-right: 16px;
+
+    .search-field {
+      width: 100%;
+      
+      ::ng-deep .mat-form-field-wrapper {
+        padding-bottom: 0;
+      }
+
+      ::ng-deep .mat-form-field-infix {
+        padding: 8px 0;
+      }
+    }
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .quick-action-btn {
+    margin-right: 16px;
+    background: #1d4ed8 !important;
+
+    .btn-text {
+      margin-left: 8px;
+      display: none;
+
+      @media (min-width: 640px) {
+        display: inline;
+      }
+    }
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1d4ed8;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.page-content {
+  flex: 1;
+  overflow: auto;
+  background: #f9fafb;
+}
+
+// Responsive adjustments
+@media (min-width: 1024px) {
+  .sidenav {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+  }
+
+  .main-content {
+    margin-left: 256px;
+  }
+
+  .menu-button {
+    display: none !important;
+  }
+}

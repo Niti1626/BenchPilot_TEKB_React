@@ -1,0 +1,205 @@
+/* You can add global styles to this file, and also import other style files */
+@import '~@angular/material/theming';
+
+// Include the common styles for Angular Material
+@include mat-core();
+
+// Define custom theme colors
+$primary: mat-palette($mat-blue, 600);
+$accent: mat-palette($mat-green, 500);
+$warn: mat-palette($mat-red, 500);
+
+// Create the theme object
+$theme: mat-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn,
+  )
+));
+
+// Include theme styles for core and each component used in your app
+@include angular-material-theme($theme);
+
+// Global styles
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f9fafb;
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+// Utility classes
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+.gap-24 {
+  gap: 24px;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.mb-24 {
+  margin-bottom: 24px;
+}
+
+.p-8 {
+  padding: 8px;
+}
+
+.p-16 {
+  padding: 16px;
+}
+
+.p-24 {
+  padding: 24px;
+}
+
+// Material overrides
+.mat-card {
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mat-button, .mat-raised-button, .mat-stroked-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+}
+
+.mat-form-field {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+}
+
+.mat-toolbar {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+// Loading states
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+// Status badges
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+
+  &.status-active {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  &.status-inactive {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  &.status-new {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  &.status-processed {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  &.status-high {
+    background: #fecaca;
+    color: #dc2626;
+  }
+
+  &.status-medium {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  &.status-low {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+}
+
+// Responsive utilities
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
