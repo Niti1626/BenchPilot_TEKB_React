@@ -1,0 +1,122 @@
+<div class="login-container">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+      <div class="logo-section">
+        <mat-icon class="logo-icon">psychology</mat-icon>
+        <h1 class="logo-text">BenchPilot</h1>
+      </div>
+      <h2 class="login-title">Welcome Back</h2>
+      <p class="login-subtitle">Sign in to your recruiter dashboard</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>📧 Email Address</mat-label>
+        <input matInput formControlName="email" placeholder="Enter your email" autocomplete="email" type="email">
+        <mat-error *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors">
+          {{ getErrorMessage('email') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Password -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>🔒 Password</mat-label>
+        <input matInput 
+               formControlName="password" 
+               placeholder="Enter your password"
+               [type]="hidePassword ? 'password' : 'text'"
+               autocomplete="current-password">
+        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors">
+          {{ getErrorMessage('password') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-options">
+        <mat-checkbox formControlName="rememberMe" class="remember-me">
+          Remember me
+        </mat-checkbox>
+        <button mat-button type="button" (click)="forgotPassword()" class="forgot-password">
+          Forgot password?
+        </button>
+      </div>
+
+      <!-- Submit Button -->
+      <button mat-raised-button 
+              color="primary" 
+              type="submit" 
+              class="login-button"
+              [disabled]="loading || !loginForm.valid">
+        <mat-spinner *ngIf="loading" diameter="20" class="button-spinner"></mat-spinner>
+        <span *ngIf="!loading">Sign In</span>
+        <span *ngIf="loading">Signing In...</span>
+      </button>
+    </form>
+
+    <!-- Role Information -->
+    <div class="role-info">
+      <h3 class="role-title">🎯 Login Types Supported:</h3>
+      <div class="role-grid">
+        <div class="role-item">
+          <mat-icon class="role-icon admin">admin_panel_settings</mat-icon>
+          <div class="role-content">
+            <h4>Admin Login</h4>
+            <p>Super Admin & Team Admin access</p>
+          </div>
+        </div>
+        <div class="role-item">
+          <mat-icon class="role-icon recruiter">person</mat-icon>
+          <div class="role-content">
+            <h4>Recruiter Login</h4>
+            <p>Bench Sales Recruiter dashboard</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signup Link -->
+    <div class="signup-section">
+      <p class="signup-text">
+        Don't have an account? 
+        <button mat-button color="primary" (click)="navigateToSignup()" class="signup-link">
+          Create Free Recruiter Account
+        </button>
+      </p>
+    </div>
+
+    <!-- Demo Credentials -->
+    <div class="demo-section">
+      <h4 class="demo-title">🔑 Demo Credentials:</h4>
+      <div class="demo-credentials">
+        <div class="demo-item">
+          <strong>Super Admin:</strong> admin@benchpilot.com / password
+        </div>
+        <div class="demo-item">
+          <strong>Team Admin:</strong> teamadmin@benchpilot.com / password
+        </div>
+        <div class="demo-item">
+          <strong>Recruiter:</strong> recruiter@benchpilot.com / password
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Elements -->
+  <div class="background-elements">
+    <div class="floating-element element-1">
+      <mat-icon>psychology</mat-icon>
+    </div>
+    <div class="floating-element element-2">
+      <mat-icon>dashboard</mat-icon>
+    </div>
+    <div class="floating-element element-3">
+      <mat-icon>people</mat-icon>
+    </div>
+  </div>
+</div>

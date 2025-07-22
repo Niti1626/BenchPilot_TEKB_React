@@ -1,21 +1,26 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './components/auth/login/login.component';
+import { SignupComponent } from './components/auth/signup/signup.component';
+import { LayoutComponent } from './components/layout/layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { EmailInboxComponent } from './components/email-inbox/email-inbox.component';
-import { ConsultantManagementComponent } from './components/consultant-management/consultant-management.component';
-import { JobRequirementsComponent } from './components/job-requirements/job-requirements.component';
-import { AiMatchingComponent } from './components/ai-matching/ai-matching.component';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'emails', component: EmailInboxComponent },
-  { path: 'consultants', component: ConsultantManagementComponent },
-  { path: 'jobs', component: JobRequirementsComponent },
-  { path: 'matching', component: AiMatchingComponent },
-  { path: 'submissions', component: DashboardComponent }, // Placeholder
-  { path: 'notifications', component: DashboardComponent }, // Placeholder
-  { path: 'settings', component: DashboardComponent }, // Placeholder
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'signup', component: SignupComponent },
+  {
+    path: 'app',
+    component: LayoutComponent,
+    canActivate: [AuthGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DashboardComponent },
+      // Add more routes as needed
+    ]
+  },
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({

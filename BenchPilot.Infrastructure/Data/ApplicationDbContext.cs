@@ -1,35 +1,107 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using BenchPilot.Core.Models;
 using System.Text.Json;
 
 namespace BenchPilot.Infrastructure.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<User>
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        // User Management
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<UserLimit> UserLimits { get; set; }
+        public DbSet<UserActivity> UserActivities { get; set; }
+
+        // Core Business Entities
         public DbSet<Consultant> Consultants { get; set; }
         public DbSet<JobRequirement> JobRequirements { get; set; }
         public DbSet<Email> Emails { get; set; }
         public DbSet<Match> Matches { get; set; }
         public DbSet<Submission> Submissions { get; set; }
 
+        // System Management
+        public DbSet<SystemAlert> SystemAlerts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Configure User entity
+            builder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Email).IsUnique();
+                
+                entity.HasOne(e => e.Role)
+                    .WithMany(e => e.Users)
+                    .HasForeignKey(e => e.RoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany(e => e.Users)
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
+                entity.HasOne(e => e.UserLimit)
+                    .WithOne(e => e.User)
+                    .HasForeignKey<UserLimit>(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure UserRole entity
+            builder.Entity<UserRole>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.RoleName).IsUnique();
+            });
+
+            // Configure Team entity
+            builder.Entity<Team>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+
+            // Configure UserLimit entity
+            builder.Entity<UserLimit>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+
+            // Configure UserActivity entity
+            builder.Entity<UserActivity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.Activities)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // Configure Consultant entity
             builder.Entity<Consultant>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.Email);
                 
                 entity.Property(e => e.Skills)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
                     );
+                
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.Consultants)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany(e => e.Consultants)
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Configure JobRequirement entity
@@ -54,22 +126,43 @@ namespace BenchPilot.Infrastructure.Data
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
                     );
+                
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.JobRequirements)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany(e => e.JobRequirements)
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure Email entity
+            builder.Entity<Email>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.Emails)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                
+                entity.HasOne(e => e.RelatedJob)
+                    .WithMany(e => e.RelatedEmails)
+                    .HasForeignKey(e => e.RelatedJobId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Configure Match entity
             builder.Entity<Match>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                
-                entity.HasOne(e => e.Job)
-                    .WithMany(e => e.Matches)
-                    .HasForeignKey(e => e.JobId)
-                    .OnDelete(DeleteBehavior.Cascade);
-                
-                entity.HasOne(e => e.Consultant)
-                    .WithMany(e => e.Matches)
-                    .HasForeignKey(e => e.ConsultantId)
-                    .OnDelete(DeleteBehavior.Cascade);
                 
                 entity.Property(e => e.KeyStrengths)
                     .HasConversion(
@@ -82,6 +175,26 @@ namespace BenchPilot.Infrastructure.Data
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
                     );
+                
+                entity.HasOne(e => e.Job)
+                    .WithMany(e => e.Matches)
+                    .HasForeignKey(e => e.JobId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(e => e.Consultant)
+                    .WithMany(e => e.Matches)
+                    .HasForeignKey(e => e.ConsultantId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Configure Submission entity
@@ -98,178 +211,126 @@ namespace BenchPilot.Infrastructure.Data
                     .WithMany(e => e.Submissions)
                     .HasForeignKey(e => e.ConsultantId)
                     .OnDelete(DeleteBehavior.Cascade);
+                
+                entity.HasOne(e => e.User)
+                    .WithMany(e => e.Submissions)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configure Email entity
-            builder.Entity<Email>(entity =>
+            // Configure SystemAlert entity
+            builder.Entity<SystemAlert>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 
-                entity.HasOne(e => e.RelatedJob)
-                    .WithMany(e => e.RelatedEmails)
-                    .HasForeignKey(e => e.RelatedJobId)
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
+                entity.HasOne(e => e.Team)
+                    .WithMany()
+                    .HasForeignKey(e => e.TeamId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
+                entity.HasOne(e => e.ResolvedByUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.ResolvedBy)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // Seed data
+            // Seed initial data
             SeedData(builder);
         }
 
         private void SeedData(ModelBuilder builder)
         {
-            // Seed Consultants
-            builder.Entity<Consultant>().HasData(
-                new Consultant
+            // Seed User Roles
+            builder.Entity<UserRole>().HasData(
+                new UserRole { Id = 1, RoleName = "SuperAdmin", Description = "System-wide administrator with full access" },
+                new UserRole { Id = 2, RoleName = "TeamAdmin", Description = "Team administrator managing recruiters" },
+                new UserRole { Id = 3, RoleName = "Recruiter", Description = "Bench sales recruiter with limited access" }
+            );
+
+            // Seed Default Team
+            builder.Entity<Team>().HasData(
+                new Team { Id = 1, TeamName = "Trial Team", Description = "Default team for free trial recruiters", IsActive = true }
+            );
+
+            // Seed Super Admin User
+            builder.Entity<User>().HasData(
+                new User
                 {
                     Id = 1,
-                    Name = "Alex Rodriguez",
-                    Email = "alex.rodriguez@email.com",
-                    Phone = "+1 (555) 123-4567",
-                    Skills = new List<string> { "React", "Node.js", "AWS", "TypeScript", "GraphQL" },
-                    Experience = 8,
-                    Location = "New York, NY",
-                    Rate = 85,
-                    RateType = "Hourly",
-                    Availability = "Available",
-                    LastSubmitted = DateTime.UtcNow.AddDays(-5),
-                    Rating = 4.8,
-                    TotalSubmissions = 23
-                },
-                new Consultant
+                    FullName = "Super Admin",
+                    Email = "admin@benchpilot.com",
+                    Phone = "+1-555-0001",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password"),
+                    RoleId = 1,
+                    TeamId = null,
+                    IsActive = true,
+                    IsEmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            );
+
+            // Seed Team Admin User
+            builder.Entity<User>().HasData(
+                new User
                 {
                     Id = 2,
-                    Name = "Maria Chen",
-                    Email = "maria.chen@email.com",
-                    Phone = "+1 (555) 234-5678",
-                    Skills = new List<string> { "Docker", "Kubernetes", "CI/CD", "Python", "Terraform" },
-                    Experience = 6,
-                    Location = "San Francisco, CA",
-                    Rate = 90,
-                    RateType = "Hourly",
-                    Availability = "On Project",
-                    LastSubmitted = DateTime.UtcNow.AddDays(-7),
-                    Rating = 4.9,
-                    TotalSubmissions = 18
-                },
-                new Consultant
+                    FullName = "Team Admin",
+                    Email = "teamadmin@benchpilot.com",
+                    Phone = "+1-555-0002",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password"),
+                    RoleId = 2,
+                    TeamId = 1,
+                    IsActive = true,
+                    IsEmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            );
+
+            // Seed Sample Recruiter
+            builder.Entity<User>().HasData(
+                new User
                 {
                     Id = 3,
-                    Name = "David Kim",
-                    Email = "david.kim@email.com",
-                    Phone = "+1 (555) 345-6789",
-                    Skills = new List<string> { "Python", "Machine Learning", "TensorFlow", "SQL", "R" },
-                    Experience = 5,
-                    Location = "Austin, TX",
-                    Rate = 95,
-                    RateType = "Hourly",
-                    Availability = "Available",
-                    LastSubmitted = DateTime.UtcNow.AddDays(-2),
-                    Rating = 4.7,
-                    TotalSubmissions = 15
+                    FullName = "John Recruiter",
+                    Email = "recruiter@benchpilot.com",
+                    Phone = "+1-555-0003",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password"),
+                    RoleId = 3,
+                    TeamId = 1,
+                    IsActive = true,
+                    IsEmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }
             );
 
-            // Seed Job Requirements
-            builder.Entity<JobRequirement>().HasData(
-                new JobRequirement
+            // Seed User Limits for Sample Recruiter
+            builder.Entity<UserLimit>().HasData(
+                new UserLimit
                 {
                     Id = 1,
-                    Title = "Senior React Developer",
-                    Client = "TechCorp Inc.",
-                    ClientContact = "Sarah Johnson",
-                    ClientEmail = "hiring@techcorp.com",
-                    ClientPhone = "+1 (555) 123-4567",
-                    Status = "active",
-                    Priority = "High",
-                    Location = "Remote",
-                    JobType = "Contract",
-                    Duration = "6 months",
-                    Rate = "$80-100/hour",
-                    RateType = "Hourly",
-                    Experience = 5,
-                    Skills = new List<string> { "React", "TypeScript", "Node.js", "AWS", "GraphQL" },
-                    Description = "We are looking for a Senior React Developer with extensive experience in modern React development, TypeScript, and cloud technologies.",
-                    Requirements = new List<string> { "5+ years of React development experience", "Strong TypeScript skills", "Experience with Node.js and Express", "AWS cloud platform knowledge", "GraphQL API development" },
-                    NiceToHave = new List<string> { "Next.js experience", "Docker containerization", "CI/CD pipeline setup" },
-                    Source = "email_extraction",
-                    AiConfidence = 95,
-                    SubmissionsCount = 8,
-                    MatchesCount = 12,
-                    ViewsCount = 45,
-                    RecruiterAssigned = "John Doe",
-                    Urgency = "High",
-                    ClientRating = 4.8,
-                    Budget = 50000,
-                    StartDate = DateTime.UtcNow.AddDays(15)
-                },
-                new JobRequirement
-                {
-                    Id = 2,
-                    Title = "DevOps Engineer",
-                    Client = "Innovate Solutions",
-                    ClientContact = "Mike Chen",
-                    ClientEmail = "mike@innovate.com",
-                    ClientPhone = "+1 (555) 234-5678",
-                    Status = "active",
-                    Priority = "Medium",
-                    Location = "San Francisco, CA",
-                    JobType = "Full-time",
-                    Duration = "Permanent",
-                    Rate = "$120,000-150,000",
-                    RateType = "Annual",
-                    Experience = 4,
-                    Skills = new List<string> { "Docker", "Kubernetes", "CI/CD", "Python", "Terraform" },
-                    Description = "Looking for a DevOps Engineer to join our growing team. You will be responsible for maintaining our cloud infrastructure.",
-                    Requirements = new List<string> { "4+ years of DevOps experience", "Strong Docker and Kubernetes skills", "CI/CD pipeline implementation", "Python scripting abilities", "Infrastructure as Code (Terraform)" },
-                    NiceToHave = new List<string> { "AWS certification", "Monitoring tools experience", "Security best practices" },
-                    Source = "email_extraction",
-                    AiConfidence = 88,
-                    SubmissionsCount = 5,
-                    MatchesCount = 8,
-                    ViewsCount = 32,
-                    RecruiterAssigned = "Jane Smith",
-                    Urgency = "Medium",
-                    ClientRating = 4.6,
-                    Budget = 135000,
-                    StartDate = DateTime.UtcNow.AddDays(30)
-                }
-            );
-
-            // Seed Emails
-            builder.Entity<Email>().HasData(
-                new Email
-                {
-                    Id = 1,
-                    From = "hiring@techcorp.com",
-                    FromName = "Sarah Johnson - TechCorp",
-                    Subject = "Urgent: Senior React Developer Position - Remote",
-                    Preview = "We have an immediate need for a Senior React Developer with 5+ years experience...",
-                    Body = "We have an immediate need for a Senior React Developer with 5+ years experience in modern React, TypeScript, and Node.js. The role is fully remote and offers competitive compensation.",
-                    Timestamp = DateTime.UtcNow.AddHours(-2),
-                    IsRead = false,
-                    Status = "new",
-                    Priority = "High",
-                    AiConfidence = 95,
-                    HasAttachment = true,
-                    Category = "job_requirement",
-                    RelatedJobId = 1
-                },
-                new Email
-                {
-                    Id = 2,
-                    From = "recruiter@innovate.com",
-                    FromName = "Mike Chen - Innovate Solutions",
-                    Subject = "DevOps Engineer - San Francisco",
-                    Preview = "Looking for a DevOps Engineer with Docker and Kubernetes experience...",
-                    Body = "Looking for a DevOps Engineer with Docker and Kubernetes experience to join our team in San Francisco.",
-                    Timestamp = DateTime.UtcNow.AddHours(-3),
-                    IsRead = false,
-                    Status = "new",
-                    Priority = "Medium",
-                    AiConfidence = 88,
-                    HasAttachment = false,
-                    Category = "job_requirement",
-                    RelatedJobId = 2
+                    UserId = 3,
+                    MaxResumes = 2,
+                    MaxSubmissionsPerDay = 10,
+                    MaxAIMatches = 1,
+                    MaxResumeEnhancements = 3,
+                    MaxSubmissionHistory = 5,
+                    IsTrialUser = true,
+                    TrialExpiryDate = DateTime.UtcNow.AddDays(30),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }
             );
         }

@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 // Angular Material
@@ -29,25 +29,35 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+
+// Components
+import { LoginComponent } from './components/auth/login/login.component';
+import { SignupComponent } from './components/auth/signup/signup.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { EmailInboxComponent } from './components/email-inbox/email-inbox.component';
-import { ConsultantManagementComponent } from './components/consultant-management/consultant-management.component';
-import { JobRequirementsComponent } from './components/job-requirements/job-requirements.component';
-import { AiMatchingComponent } from './components/ai-matching/ai-matching.component';
+import { SuperAdminDashboardComponent } from './components/dashboard/super-admin-dashboard/super-admin-dashboard.component';
+import { TeamAdminDashboardComponent } from './components/dashboard/team-admin-dashboard/team-admin-dashboard.component';
+import { RecruiterDashboardComponent } from './components/dashboard/recruiter-dashboard/recruiter-dashboard.component';
+
+// Services & Interceptors
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
     AppComponent,
+    LoginComponent,
+    SignupComponent,
     LayoutComponent,
     DashboardComponent,
-    EmailInboxComponent,
-    ConsultantManagementComponent,
-    JobRequirementsComponent,
-    AiMatchingComponent
+    SuperAdminDashboardComponent,
+    TeamAdminDashboardComponent,
+    RecruiterDashboardComponent
   ],
   imports: [
     BrowserModule,
@@ -81,9 +91,18 @@ import { AiMatchingComponent } from './components/ai-matching/ai-matching.compon
     MatTabsModule,
     MatExpansionModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatFormFieldModule,
+    MatStepperModule,
+    MatTooltipModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
